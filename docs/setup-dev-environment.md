@@ -5,6 +5,7 @@
 This document is intended to guide you through setting up a local development environment for the Colouring Cities application. This guide assumes you already have either already have access to an machine with Ubuntu 18.04 installed, or can use VirtualBox to set up an Ubuntu virtual machine as below.
 
 #### Note
+
 This guide assumes you are working with the ['colouring-core'](https://github.com/colouring-cities/colouring-core) repository. If you are creating your own fork, or want to use a custom city name, then you may wish to change `'colouring-core'` to `'colouring-[your city name]'`.
 
 <details>
@@ -22,11 +23,11 @@ For "Colouring London", we have found that the size of the database means that a
 
 If you a running Ubuntu in a virtual environment you will need to configure networking to forward ports from the guest to the host. For Virtual Box the following was configured under NAT port forwarding (found under `Settings -> Network -> Advanced -> Port Forwarding`).
 
-Name     | Protocol  | Host Port  | Guest Port
--------- | --------- | ---------- | -----------
-app      | TCP       | 8080       | 3000
-app_dev  | TCP       | 3001       | 3001
-ssh      | TCP       | 4022       | 22
+| Name    | Protocol | Host Port | Guest Port |
+| ------- | -------- | --------- | ---------- |
+| app     | TCP      | 8080      | 3000       |
+| app_dev | TCP      | 3001      | 3001       |
+| ssh     | TCP      | 4022      | 22         |
 
 The `app_dev` mapping is used in development by Razzle which rebuilds and serves client side assets on the fly.
 
@@ -38,11 +39,12 @@ If you wish to `ssh`, you will first need to open the terminal in Ubuntu and run
 sudo apt-get install -y openssh-server
 ```
 
-You can then `ssh` into the VirtualBox VM set up with the port  forwarding described above like so, where `<linuxusername>` is the name you set up during the installation of Ubuntu (you can type `whoami` in the Ubuntu terminal to remind yourself of this).
+You can then `ssh` into the VirtualBox VM set up with the port forwarding described above like so, where `<linuxusername>` is the name you set up during the installation of Ubuntu (you can type `whoami` in the Ubuntu terminal to remind yourself of this).
 
 ```bash
 ssh <linuxusername>@localhost -p 4022
 ```
+
 </details>
 
 ## Contents
@@ -104,7 +106,7 @@ sudo apt-get install -y gdal-bin libspatialindex-dev libgeos-dev libproj-dev
 
 ### :rainbow: Installing Colouring Cities Core Platform
 
-Now clone the `colouring-core` codebase. 
+Now clone the `colouring-core` codebase.
 
 ```bash
 cd ~ && git clone https://github.com/colouring-cities/colouring-core.git
@@ -268,11 +270,18 @@ In your Ubuntu installation where you have been running these setup steps (e.g. 
 
 ```bash
 psql < <dumpfile>
-```  
-  
-Alternatively, if you get errors using the above command, use pg_restore:  
-  ```bash
+```
+
+Alternatively, if you get errors using the above command, use pg_restore:
+
+```bash
 pg_restore -d <colouringcitiesdb> <dumpfile>
+```
+
+If you have a dumpfile in .sql format, use psql:
+
+```bash
+psql -U <username> -d <colouringcitiesdb> -f <dumpfile>
 ```
 
 #### Run migrations
@@ -283,12 +292,13 @@ do this are located in the `migrations` folder of your local repository.
 ```bash
 ls ~/colouring-core/migrations/*.up.sql 2>/dev/null | while read -r migration; do psql < $migration; done;
 ```
-                                                                                                      
-Again, if you get errors, you may need to manually specify the database name                                                                                           
-                                                                                                      
+
+Again, if you get errors, you may need to manually specify the database name
+
 ```bash
 ls ~/colouring-core/migrations/*.up.sql 2>/dev/null | while read -r migration; do psql -d <colouringcitiesdb> < $migration; done;
 ```
+
 </details>
 
 <details>
@@ -298,7 +308,7 @@ This section shows how to load test buildings into the application from OpenStre
 
 #### Load OpenStreetMap test polygons
 
-Create a virtual environment for python in the `etl` folder of your repository. In the following example we have name the virtual environment *colouringcities* but it can have any name.
+Create a virtual environment for python in the `etl` folder of your repository. In the following example we have name the virtual environment _colouringcities_ but it can have any name.
 
 ```bash
 cd ~/colouring-core/etl
@@ -326,7 +336,7 @@ pip install -r requirements.txt
 
 To help test the Colouring Cities application, `get_test_polygons.py` will attempt to save a small (1.5km²) extract from OpenStreetMap to a format suitable for loading to the database.
 
-**NOTE:** You can edit the file by [changing this line](https://github.com/colouring-cities/colouring-core/blob/df651521983665056d442603a329a37d966aede1/etl/get_test_polygons.py#L22) to specify the latitude and longitude used to define the centre of the sample data area, as well as the distance from that point, which are used to generate the sample data. (i.e. you could change it to match the cc-config.json file - as discussed in [configuring-colouring-cities.md](https://github.com/colouring-cities/colouring-core/blob/master/docs/configuring-colouring-cities.md). 
+**NOTE:** You can edit the file by [changing this line](https://github.com/colouring-cities/colouring-core/blob/df651521983665056d442603a329a37d966aede1/etl/get_test_polygons.py#L22) to specify the latitude and longitude used to define the centre of the sample data area, as well as the distance from that point, which are used to generate the sample data. (i.e. you could change it to match the cc-config.json file - as discussed in [configuring-colouring-cities.md](https://github.com/colouring-cities/colouring-core/blob/master/docs/configuring-colouring-cities.md).
 
 Download the test data.
 
@@ -335,18 +345,10 @@ python get_test_polygons.py
 ```
 
 Note: the first time you run it, you will get these warnings:
+
 ```
 rm: cannot remove 'test_buildings.geojson': No such file or directory
 rm: cannot remove 'test_buildings.3857.csv': No such file or directory
-```
-
-#### Run migrations
-
-Now run all 'up' migrations to create tables, data types, indexes etc. The `.sql` scripts to
-do this are located in the `migrations` folder of your local repository.
-
-```bash
-ls ~/colouring-core/migrations/*.up.sql 2>/dev/null | while read -r migration; do psql < $migration; done;
 ```
 
 #### Load buildings
@@ -362,6 +364,7 @@ Create a building record per outline.
 ```bash
 ./create_building_records.sh
 ```
+
 </details>
 
 After buildings are loaded or their geometries changed, it is necessary to flush cache files so outdated geometries are not shown.
@@ -398,6 +401,7 @@ npm start
 ```
 
 **Note:** You can also specify the variables for `npm start` like so:
+
 <details>
 <summary>
 Specify variables
@@ -411,6 +415,6 @@ PGPASSWORD=<pgpassword> PGDATABASE=<colouringcitiesdb> PGUSER=<username> PGHOST=
 
 ### :eyes: Viewing the application
 
-The site can then be viewed on http://localhost:8080 on the host computer.
+The site can then be viewed on http://localhost:3000 on the host computer.
 
 Finally to quit the application type `Ctrl-C`.
